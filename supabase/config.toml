@@ -1,0 +1,16 @@
+project_id = "nktfcylukxootchitaig"
+
+# Auth for these functions is handled by our own x-admin-password header
+# (rooms, qr) or is intentionally public (confirm, admin-login) — not
+# Supabase's JWT-based auth, so verification is disabled per function.
+[functions.confirm]
+verify_jwt = false
+
+[functions.admin-login]
+verify_jwt = false
+
+[functions.rooms]
+verify_jwt = false
+
+[functions.qr]
+verify_jwt = false

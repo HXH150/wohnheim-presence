@@ -7,9 +7,9 @@ no account, no personal data. Everything is keyed by room number and a per-room 
 ## Stack
 
 - **Frontend**: static HTML + CSS + vanilla JS → GitHub Pages
-- **Backend**: Node.js + Express → deployed separately (Render, Fly.io, etc.)
+- **Backend**: Supabase Edge Functions (Deno)
 - **Database**: Supabase (PostgreSQL, EU region)
-- **QR codes**: `qrcode` (per-room PNG) + `pdfkit` (printable sheet of all rooms)
+- **QR codes**: `qrcode` (per-room PNG) + `pdfkit` (printable sheet of all rooms), both via `npm:` specifiers
 
 ## Setup
 
@@ -18,31 +18,57 @@ no account, no personal data. Everything is keyed by room number and a per-room 
 Open the SQL editor in your Supabase project and run [`sql/schema.sql`](sql/schema.sql).
 This creates the `rooms` and `confirmations` tables.
 
-### 2. Backend
+Install the [Supabase CLI](https://supabase.com/docs/guides/cli), then link this
+repo to your project:
 
 ```
-cd backend
-npm install
-cp .env.example .env   # fill in SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_PASSWORD, BASE_URL
-npm start
+supabase login
+supabase link --project-ref YOUR-PROJECT-REF
 ```
 
-The API listens on `PORT` (default `3001`). `BASE_URL` should be the public URL of
-the **frontend** (your GitHub Pages URL) — it's embedded in generated QR codes.
+### 2. Backend (Edge Functions)
 
-> The Supabase key used server-side should be a key permitted to read/write the
-> `rooms` and `confirmations` tables only — treat it as a secret and never commit
-> `.env`.
+Set the two secrets the functions need. `BASE_URL` should be the public URL of the
+**frontend** (your GitHub Pages URL) — it's embedded in generated QR codes.
+`SUPABASE_URL` and the service-role key are injected automatically by Supabase and
+don't need to be set here.
+
+```
+supabase secrets set ADMIN_PASSWORD=your-password BASE_URL=https://your-username.github.io/wohnheim-presence
+```
+
+Deploy the functions:
+
+```
+supabase functions deploy confirm admin-login rooms qr
+```
+
+This publishes them at
+`https://YOUR-PROJECT-REF.supabase.co/functions/v1/<function-name>`.
+
+#### Local development
+
+Each function is a plain `Deno.serve(...)` file, so it can be run directly without
+Docker (Docker is only required for `supabase functions serve`'s full local stack):
+
+```
+export SUPABASE_URL=https://YOUR-PROJECT-REF.supabase.co
+export SUPABASE_SERVICE_ROLE_KEY=...   # from the Supabase dashboard, API settings
+export ADMIN_PASSWORD=...
+export BASE_URL=http://localhost:5500
+deno run -A --node-modules-dir=none supabase/functions/rooms/index.ts
+```
 
 ### 3. Frontend
 
 The frontend is static and can be opened directly or served with any static file
-server. It talks to the backend via `window.WOHNHEIM_API_BASE`, which defaults to
-`http://localhost:3001`. For production, set this before the page scripts run, e.g.
-add to `confirm.html` / `admin.html`:
+server. It talks to the Edge Functions via `window.WOHNHEIM_FUNCTIONS_BASE`, which
+defaults to `http://localhost:54321/functions/v1` (the local Supabase CLI URL). For
+production, set this before the page scripts run, e.g. add to `confirm.html` /
+`admin.html`:
 
 ```html
-<script>window.WOHNHEIM_API_BASE = 'https://your-backend-url';</script>
+<script>window.WOHNHEIM_FUNCTIONS_BASE = 'https://YOUR-PROJECT-REF.supabase.co/functions/v1';</script>
 ```
 
 Deploy the `frontend/` folder to GitHub Pages (or any static host).
@@ -54,16 +80,18 @@ Deploy the `frontend/` folder to GitHub Pages (or any static host).
 
 ## API
 
+Base URL: `https://YOUR-PROJECT-REF.supabase.co/functions/v1`
+
 | Method | Route | Auth | Description |
 |---|---|---|---|
-| GET | `/api/confirm/:token` | none | Look up room by token |
-| POST | `/api/confirm` | none | `{ token, action: "confirm" \| "moved_out" }` |
-| GET | `/api/rooms` | `x-admin-password` header | All rooms with computed status |
-| POST | `/api/rooms` | `x-admin-password` header | `{ room_number }` — creates room + token |
-| PUT | `/api/rooms/:id` | `x-admin-password` header | `{ status: "active" \| "vacant" }` |
-| GET | `/api/qr/:token` | none | PNG QR code for a room's confirm URL |
-| GET | `/api/qr/all/pdf` | `x-admin-password` header | Printable PDF of every room's QR code |
-| POST | `/api/admin/login` | none | `{ password }` — verifies the admin password |
+| GET | `/confirm/:token` | none | Look up room by token |
+| POST | `/confirm` | none | `{ token, action: "confirm" \| "moved_out" }` |
+| GET | `/rooms` | `x-admin-password` header | All rooms with computed status |
+| POST | `/rooms` | `x-admin-password` header | `{ room_number }` — creates room + token |
+| PUT | `/rooms/:id` | `x-admin-password` header | `{ status: "active" \| "vacant" }` |
+| GET | `/qr/:token` | none | PNG QR code for a room's confirm URL |
+| GET | `/qr/all/pdf` | `x-admin-password` header | Printable PDF of every room's QR code |
+| POST | `/admin-login` | none | `{ password }` — verifies the admin password |
 
 ## Business logic
 

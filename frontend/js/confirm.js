@@ -1,6 +1,8 @@
 (function () {
-  // Adjust this if the backend is deployed elsewhere.
-  const API_BASE = window.WOHNHEIM_API_BASE || 'http://localhost:3001';
+  // Base URL of the Supabase Edge Functions (backend). Set
+  // window.WOHNHEIM_FUNCTIONS_BASE before this script runs to point at your
+  // deployed Supabase project; defaults to the local `supabase functions serve` URL.
+  const API_BASE = window.WOHNHEIM_FUNCTIONS_BASE || 'http://localhost:54321/functions/v1';
 
   const translations = {
     de: {
@@ -131,7 +133,7 @@
   async function loadRoom() {
     if (!token) return showError();
     try {
-      const res = await fetch(`${API_BASE}/api/confirm/${encodeURIComponent(token)}`);
+      const res = await fetch(`${API_BASE}/confirm/${encodeURIComponent(token)}`);
       if (!res.ok) return showError();
       const data = await res.json();
       roomNumber = data.room_number;
@@ -147,7 +149,7 @@
     if (!token) return;
     el.btnConfirm.disabled = true;
     try {
-      const res = await fetch(`${API_BASE}/api/confirm`, {
+      const res = await fetch(`${API_BASE}/confirm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, action: 'confirm' }),
@@ -171,7 +173,7 @@
     if (!window.confirm(t.confirmMoved)) return;
 
     try {
-      const res = await fetch(`${API_BASE}/api/confirm`, {
+      const res = await fetch(`${API_BASE}/confirm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, action: 'moved_out' }),

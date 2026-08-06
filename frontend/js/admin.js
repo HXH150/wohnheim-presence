@@ -1,5 +1,8 @@
 (function () {
-  const API_BASE = window.WOHNHEIM_API_BASE || 'http://localhost:3001';
+  // Base URL of the Supabase Edge Functions (backend). Set
+  // window.WOHNHEIM_FUNCTIONS_BASE before this script runs to point at your
+  // deployed Supabase project; defaults to the local `supabase functions serve` URL.
+  const API_BASE = window.WOHNHEIM_FUNCTIONS_BASE || 'http://localhost:54321/functions/v1';
   const STORAGE_KEY = 'wohnheim_admin_password';
 
   let rooms = [];
@@ -68,7 +71,7 @@
     el.loginError.style.display = 'none';
     el.loginBtn.disabled = true;
     try {
-      const res = await fetch(`${API_BASE}/api/admin/login`, {
+      const res = await fetch(`${API_BASE}/admin-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
@@ -99,7 +102,7 @@
 
   async function loadRooms() {
     setPeriodLabel();
-    const res = await fetch(`${API_BASE}/api/rooms`, { headers: authHeaders() });
+    const res = await fetch(`${API_BASE}/rooms`, { headers: authHeaders() });
     if (res.status === 401) {
       sessionStorage.removeItem(STORAGE_KEY);
       el.dashboard.style.display = 'none';
@@ -158,7 +161,7 @@
       openQrModal(btn.dataset.token, btn.dataset.room);
     } else if (btn.dataset.action === 'stop-billing') {
       if (!window.confirm('Abrechnung für dieses Zimmer wirklich stoppen? Das Zimmer wird als ausgezogen markiert.')) return;
-      const res = await fetch(`${API_BASE}/api/rooms/${btn.dataset.id}`, {
+      const res = await fetch(`${API_BASE}/rooms/${btn.dataset.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ status: 'vacant' }),
@@ -178,7 +181,7 @@
 
   function openQrModal(token, roomNumber) {
     el.qrModalTitle.textContent = `Zimmer ${roomNumber}`;
-    el.qrModalImg.src = `${API_BASE}/api/qr/${token}`;
+    el.qrModalImg.src = `${API_BASE}/qr/${token}`;
     el.qrModalDownload.dataset.token = token;
     el.qrModalDownload.dataset.room = roomNumber;
     el.qrModal.classList.add('active');
@@ -191,7 +194,7 @@
 
   el.qrModalDownload.addEventListener('click', () => {
     const a = document.createElement('a');
-    a.href = `${API_BASE}/api/qr/${el.qrModalDownload.dataset.token}`;
+    a.href = `${API_BASE}/qr/${el.qrModalDownload.dataset.token}`;
     a.download = `zimmer-${el.qrModalDownload.dataset.room}-qr.png`;
     a.click();
   });
@@ -211,7 +214,7 @@
     const room_number = el.newRoomNumber.value.trim();
     if (!room_number) return;
 
-    const res = await fetch(`${API_BASE}/api/rooms`, {
+    const res = await fetch(`${API_BASE}/rooms`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify({ room_number }),
@@ -224,7 +227,7 @@
   });
 
   el.btnDownloadAllQr.addEventListener('click', async () => {
-    const res = await fetch(`${API_BASE}/api/qr/all/pdf`, { headers: authHeaders() });
+    const res = await fetch(`${API_BASE}/qr/all/pdf`, { headers: authHeaders() });
     if (!res.ok) return;
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);

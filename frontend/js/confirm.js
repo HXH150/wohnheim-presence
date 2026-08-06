@@ -74,6 +74,23 @@
       errorBody: 'Bu QR kodu bir odayla eşleştirilemedi. Lütfen yönetimle iletişime geçin.',
       footer: 'Verileriniz güvenli bir şekilde saklanır. Hesap gerekmez.',
     },
+    ua: {
+      locale: 'uk-UA',
+      title: 'Щомісячне підтвердження проживання',
+      roomPrefix: 'Кімната',
+      question: 'Ви все ще проживаєте в кімнаті {room}?',
+      sub: 'Будь ласка, підтверджуйте раз на місяць, що ви все ще тут проживаєте. Це займає лише секунду.',
+      btnConfirm: 'Так, я все ще тут проживаю',
+      btnMoved: 'Я виїхав(-ла) →',
+      confirmMoved: 'Ви дійсно хочете підтвердити, що виїхали?',
+      successTitle: 'Дякуємо!',
+      successBody: 'Ваше проживання за <strong>{month}</strong> підтверджено.<br>Більше нічого робити не потрібно.',
+      movedTitle: 'Зрозуміло.',
+      movedBody: 'Кімнату позначено як звільнену. Дякуємо за ваше повідомлення.',
+      errorTitle: 'Недійсне посилання',
+      errorBody: 'Цей QR-код не вдалося пов\'язати з жодною кімнатою. Будь ласка, зверніться до адміністрації.',
+      footer: 'Ваші дані зберігаються безпечно. Обліковий запис не потрібен.',
+    },
   };
 
   let currentLang = 'de';

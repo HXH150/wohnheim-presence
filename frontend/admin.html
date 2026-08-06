@@ -58,7 +58,10 @@
       <button class="filter-btn" data-filter="warn">⚠️ Nicht bestätigt</button>
       <button class="filter-btn" data-filter="danger">🔴 Ausgezogen</button>
     </div>
-    <button class="btn-add-room" id="btn-add-room">+ Zimmer hinzufügen</button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-add-room" id="btn-add-room">+ Zimmer hinzufügen</button>
+      <button class="btn-add-room" id="btn-bulk-add-room" style="background:var(--accent)">+ Mehrere Zimmer hinzufügen</button>
+    </div>
   </div>
 
   <!-- Table -->
@@ -105,6 +108,31 @@
     <div class="modal-actions">
       <button id="add-room-cancel">Abbrechen</button>
       <button class="primary" id="add-room-confirm">Hinzufügen</button>
+    </div>
+  </div>
+</div>
+
+<!-- BULK ADD ROOMS MODAL -->
+<div class="modal-overlay" id="bulk-add-room-modal">
+  <div class="modal-card" style="max-width:440px;text-align:left;">
+    <h3 style="text-align:center;">Mehrere Zimmer hinzufügen</h3>
+    <p style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;line-height:1.5;">
+      Geben Sie einen Bereich ein (z. B. <strong>„1 bis 20“</strong>) oder fügen Sie eine Liste von
+      Zimmernamen ein — ein Name pro Zeile. Bitte nur die Nummer angeben, ohne „Zimmer“ davor —
+      das Wort „Zimmer“ wird in der Übersicht und auf der Bestätigungsseite automatisch ergänzt.
+    </p>
+    <textarea
+      id="bulk-room-input"
+      rows="6"
+      placeholder="1 bis 20&#10;&#10;oder&#10;&#10;1&#10;2&#10;3A"
+      style="width:100%;padding:11px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:14px;font-family:inherit;resize:vertical;margin-bottom:8px;"
+    ></textarea>
+    <div id="bulk-room-preview" style="font-size:13px;color:var(--ink-soft);margin-bottom:14px;min-height:18px;"></div>
+    <div id="bulk-room-progress" style="font-size:13px;color:var(--ink-soft);margin-bottom:14px;display:none;"></div>
+    <div id="bulk-room-result" style="font-size:13px;margin-bottom:14px;display:none;"></div>
+    <div class="modal-actions">
+      <button id="bulk-add-room-cancel">Abbrechen</button>
+      <button class="primary" id="bulk-add-room-confirm">Zimmer erstellen</button>
     </div>
   </div>
 </div>

@@ -32,6 +32,14 @@
     qrModalClose: document.getElementById('qr-modal-close'),
     qrModalDownload: document.getElementById('qr-modal-download'),
     btnDownloadAllQr: document.getElementById('btn-download-all-qr'),
+    btnBulkAddRoom: document.getElementById('btn-bulk-add-room'),
+    bulkAddRoomModal: document.getElementById('bulk-add-room-modal'),
+    bulkRoomInput: document.getElementById('bulk-room-input'),
+    bulkRoomPreview: document.getElementById('bulk-room-preview'),
+    bulkRoomProgress: document.getElementById('bulk-room-progress'),
+    bulkRoomResult: document.getElementById('bulk-room-result'),
+    bulkAddRoomCancel: document.getElementById('bulk-add-room-cancel'),
+    bulkAddRoomConfirm: document.getElementById('bulk-add-room-confirm'),
   };
 
   function adminPassword() {
@@ -224,6 +232,120 @@
       el.addRoomModal.classList.remove('active');
       loadRooms();
     }
+  });
+
+  // --- Bulk room creation ---
+  // Accepts either a single-line range ("Zimmer 1 bis Zimmer 20", "Zimmer 1 to
+  // Zimmer 20", "Zimmer 1-20") or a newline/comma-separated list of room names.
+  function parseRoomNames(rawText) {
+    const text = rawText.trim();
+    if (!text) return [];
+
+    if (!text.includes('\n')) {
+      const rangeMatch = text.match(/^([^\d]*)(\d+)\s*(?:bis|to|-|–)\s*(?:\1)?\s*(\d+)[^\d]*$/i);
+      if (rangeMatch) {
+        const prefix = rangeMatch[1];
+        let start = parseInt(rangeMatch[2], 10);
+        let end = parseInt(rangeMatch[3], 10);
+        if (start > end) [start, end] = [end, start];
+        const names = [];
+        for (let n = start; n <= end; n++) {
+          names.push(`${prefix}${n}`.trim());
+        }
+        return names;
+      }
+    }
+
+    return text
+      .split(/\r?\n|,/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
+  function updateBulkPreview() {
+    const names = parseRoomNames(el.bulkRoomInput.value);
+    if (names.length === 0) {
+      el.bulkRoomPreview.textContent = '';
+    } else if (names.length === 1) {
+      el.bulkRoomPreview.textContent = `1 Zimmer wird erstellt: ${names[0]}`;
+    } else {
+      const preview = names.slice(0, 3).join(', ');
+      const more = names.length > 3 ? ` … (${names.length} insgesamt)` : '';
+      el.bulkRoomPreview.textContent = `${names.length} Zimmer werden erstellt: ${preview}${more}`;
+    }
+  }
+
+  el.bulkRoomInput.addEventListener('input', updateBulkPreview);
+
+  el.btnBulkAddRoom.addEventListener('click', () => {
+    el.bulkRoomInput.value = '';
+    el.bulkRoomPreview.textContent = '';
+    el.bulkRoomProgress.style.display = 'none';
+    el.bulkRoomResult.style.display = 'none';
+    el.bulkAddRoomModal.classList.add('active');
+    el.bulkRoomInput.focus();
+  });
+
+  el.bulkAddRoomCancel.addEventListener('click', () => {
+    el.bulkAddRoomModal.classList.remove('active');
+  });
+
+  el.bulkAddRoomConfirm.addEventListener('click', async () => {
+    const names = parseRoomNames(el.bulkRoomInput.value);
+    if (names.length === 0) return;
+
+    if (names.length > 500) {
+      alert('Bitte maximal 500 Zimmer auf einmal erstellen.');
+      return;
+    }
+    if (names.length > 50 && !window.confirm(`${names.length} Zimmer werden erstellt. Fortfahren?`)) {
+      return;
+    }
+
+    el.bulkAddRoomConfirm.disabled = true;
+    el.bulkAddRoomCancel.disabled = true;
+    el.bulkRoomResult.style.display = 'none';
+    el.bulkRoomProgress.style.display = 'block';
+
+    let erfolgreich = 0;
+    const fehlgeschlagen = [];
+
+    for (let i = 0; i < names.length; i++) {
+      el.bulkRoomProgress.textContent = `${i + 1} von ${names.length} wird erstellt...`;
+      try {
+        const res = await fetch(`${API_BASE}/rooms`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders() },
+          body: JSON.stringify({ room_number: names[i] }),
+        });
+        if (res.ok) {
+          erfolgreich++;
+        } else {
+          const body = await res.json().catch(() => ({}));
+          fehlgeschlagen.push({ name: names[i], fehler: body.error || `HTTP ${res.status}` });
+        }
+      } catch (err) {
+        fehlgeschlagen.push({ name: names[i], fehler: err.message });
+      }
+    }
+
+    el.bulkRoomProgress.style.display = 'none';
+    el.bulkRoomResult.style.display = 'block';
+    let resultHtml = `<strong style="color:var(--ok)">${erfolgreich} von ${names.length} Zimmer erstellt.</strong>`;
+    if (fehlgeschlagen.length > 0) {
+      resultHtml += `<div style="color:var(--danger);margin-top:6px;">${fehlgeschlagen.length} fehlgeschlagen:</div>`;
+      resultHtml += '<ul style="margin:4px 0 0 18px;color:var(--danger);font-size:12px;">';
+      resultHtml += fehlgeschlagen.map((f) => `<li>${f.name}: ${f.fehler}</li>`).join('');
+      resultHtml += '</ul>';
+    }
+    el.bulkRoomResult.innerHTML = resultHtml;
+
+    el.bulkAddRoomConfirm.disabled = false;
+    el.bulkAddRoomCancel.disabled = false;
+    el.bulkRoomInput.value = '';
+    el.bulkRoomPreview.textContent = '';
+
+    if (erfolgreich > 0) loadRooms();
   });
 
   el.btnDownloadAllQr.addEventListener('click', async () => {

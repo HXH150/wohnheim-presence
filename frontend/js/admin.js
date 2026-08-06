@@ -211,7 +211,7 @@
   el.qrModalDownload.addEventListener('click', () => {
     const a = document.createElement('a');
     a.href = `${API_BASE}/qr/${el.qrModalDownload.dataset.token}`;
-    a.download = `zimmer-${el.qrModalDownload.dataset.room}-qr.png`;
+    a.download = `zimmer-${el.qrModalDownload.dataset.room}-qr.svg`;
     a.click();
   });
 

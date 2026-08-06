@@ -17,6 +17,34 @@ function confirmUrl(token: string) {
 
 type RoomForQr = { room_number: string; token: string };
 
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+// Builds a single QR code as SVG with the room label printed below it, so a
+// printed/downloaded code is still identifiable once it's on the door.
+async function buildQrSvg(token: string, roomNumber: string): Promise<string> {
+  const size = 300;
+  const labelHeight = 50;
+  const qrSvg = await QRCode.toString(confirmUrl(token), {
+    type: "svg",
+    width: size,
+    margin: 2,
+  });
+  const label = escapeXml(`Zimmer ${roomNumber}`);
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size + labelHeight}" viewBox="0 0 ${size} ${size + labelHeight}">
+  <rect width="${size}" height="${size + labelHeight}" fill="#ffffff"/>
+  ${qrSvg}
+  <text x="${size / 2}" y="${size + labelHeight / 2 + 8}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#000000">${label}</text>
+</svg>`;
+}
+
 async function buildQrPdf(rooms: RoomForQr[]): Promise<Uint8Array> {
   const doc = new PDFDocument({ size: "A4", margin: 40 });
   const chunks: Uint8Array[] = [];
@@ -59,7 +87,7 @@ async function buildQrPdf(rooms: RoomForQr[]): Promise<Uint8Array> {
 }
 
 // GET /qr/all/pdf — printable PDF with every room's QR code (admin only)
-// GET /qr/:token — QR code PNG for a single room's confirm URL (public)
+// GET /qr/:token — QR code SVG (with room label below it) for a single room's confirm URL (public)
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -97,7 +125,7 @@ Deno.serve(async (req) => {
 
     const { data: room, error } = await supabase
       .from("rooms")
-      .select("token")
+      .select("token, room_number")
       .eq("token", token)
       .single();
 
@@ -105,9 +133,9 @@ Deno.serve(async (req) => {
       return json({ error: "Zimmer nicht gefunden" }, 404);
     }
 
-    const buffer = await QRCode.toBuffer(confirmUrl(room.token), { width: 400, margin: 2 });
-    return new Response(buffer, {
-      headers: { ...corsHeaders, "Content-Type": "image/png" },
+    const svg = await buildQrSvg(room.token, room.room_number);
+    return new Response(svg, {
+      headers: { ...corsHeaders, "Content-Type": "image/svg+xml" },
     });
   } catch (err) {
     return json({ error: (err as Error).message }, 500);

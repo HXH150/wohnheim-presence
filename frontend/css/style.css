@@ -294,7 +294,8 @@ body {
 }
 .room-table-header {
   display: grid;
-  grid-template-columns: 90px 1fr 150px 130px 100px;
+  grid-template-columns: 120px 1fr 150px 130px 100px;
+  gap: 24px;
   padding: 12px 20px;
   background: #F9FAFB;
   border-bottom: 1px solid var(--border);
@@ -306,7 +307,8 @@ body {
 }
 .room-row {
   display: grid;
-  grid-template-columns: 90px 1fr 150px 130px 100px;
+  grid-template-columns: 120px 1fr 150px 130px 100px;
+  gap: 24px;
   padding: 14px 20px;
   border-bottom: 1px solid var(--border);
   align-items: center;
@@ -458,7 +460,7 @@ body {
   text-align: center;
 }
 .modal-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
-.modal-card img { width: 220px; height: 220px; margin: 0 auto 16px; display: block; }
+.modal-card img { width: 220px; height: auto; margin: 0 auto 16px; display: block; }
 .modal-card input {
   width: 100%;
   padding: 11px 14px;
@@ -485,7 +487,7 @@ body {
 
 @media (max-width: 600px) {
   .room-table-header,
-  .room-row { grid-template-columns: 70px 1fr 110px; }
+  .room-row { grid-template-columns: 80px 1fr 110px; gap: 14px; }
   .room-table-header > *:nth-child(4),
   .room-table-header > *:nth-child(5),
   .room-row > *:nth-child(4),

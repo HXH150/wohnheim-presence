@@ -146,7 +146,10 @@
     el.roomRows.innerHTML = filtered.map((room) => {
       const label = statusLabel(room.status);
       const overdue = room.days_since !== null && room.days_since >= 30;
-      const actionBtn = room.status === 'danger' || (room.status === 'warn' && overdue)
+      // "Abrechnung stoppen" only makes sense for a still-active room that's
+      // overdue. A room already marked vacant (status "danger") keeps the QR
+      // button — the Hausverwalter may need to reprint it for a new Bewohner.
+      const actionBtn = room.status === 'warn' && overdue
         ? `<button class="action-btn red" data-action="stop-billing" data-id="${room.id}">Abrechnung stoppen</button>`
         : `<button class="action-btn" data-action="qr" data-token="${room.token}" data-room="${room.room_number}">QR</button>`;
 
@@ -174,7 +177,12 @@
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ status: 'vacant' }),
       });
-      if (res.ok) loadRooms();
+      if (res.ok) {
+        loadRooms();
+      } else {
+        const body = await res.json().catch(() => ({}));
+        alert(`Abrechnung stoppen fehlgeschlagen: ${body.error || `HTTP ${res.status}`}`);
+      }
     }
   });
 

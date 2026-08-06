@@ -336,7 +336,20 @@ body {
 .status-pill.ok { background: #DCFCE7; color: #15803D; }
 .status-pill.warn { background: #FEF9C3; color: #854D0E; }
 .status-pill.danger { background: #FEE2E2; color: #991B1B; }
+.status-pill.blocked { background: #E5E7EB; color: #374151; }
 .status-pill::before { content: '●'; font-size: 8px; }
+
+.status-select {
+  display: block;
+  margin-top: 6px;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--ink-soft);
+  background: var(--surface);
+}
 
 .action-btn {
   padding: 5px 12px;

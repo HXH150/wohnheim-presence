@@ -45,6 +45,8 @@ async function buildQrSvg(token: string, roomNumber: string): Promise<string> {
 </svg>`;
 }
 
+// One QR code per page, centered, with the room label printed below it —
+// each page is a ready-to-print door sign.
 async function buildQrPdf(rooms: RoomForQr[]): Promise<Uint8Array> {
   const doc = new PDFDocument({ size: "A4", margin: 40 });
   const chunks: Uint8Array[] = [];
@@ -54,31 +56,23 @@ async function buildQrPdf(rooms: RoomForQr[]): Promise<Uint8Array> {
     doc.on("error", reject);
   });
 
-  const perRow = 2;
-  const cellWidth = 260;
-  const cellHeight = 300;
-  let col = 0;
-  let row = 0;
+  const pageWidth = doc.page.width;
+  const qrSize = 320;
+  const qrY = 180;
 
-  for (const room of rooms) {
-    const qrDataUrl = await QRCode.toDataURL(confirmUrl(room.token), { width: 300, margin: 1 });
+  for (let i = 0; i < rooms.length; i++) {
+    const room = rooms[i];
+    if (i > 0) doc.addPage();
+
+    const qrDataUrl = await QRCode.toDataURL(confirmUrl(room.token), { width: qrSize, margin: 1 });
     const qrImage = Buffer.from(qrDataUrl.split(",")[1], "base64");
 
-    const x = 40 + col * cellWidth;
-    const y = 40 + row * cellHeight;
-
-    doc.image(qrImage, x, y, { width: 200 });
-    doc.fontSize(16).text(`Zimmer ${room.room_number}`, x, y + 210, { width: 200, align: "center" });
-
-    col++;
-    if (col >= perRow) {
-      col = 0;
-      row++;
-      if (row >= 2 && rooms.indexOf(room) !== rooms.length - 1) {
-        doc.addPage();
-        row = 0;
-      }
-    }
+    const x = (pageWidth - qrSize) / 2;
+    doc.image(qrImage, x, qrY, { width: qrSize });
+    doc
+      .fontSize(28)
+      .font("Helvetica-Bold")
+      .text(`Zimmer ${room.room_number}`, 0, qrY + qrSize + 40, { width: pageWidth, align: "center" });
   }
 
   doc.end();
@@ -101,7 +95,7 @@ Deno.serve(async (req) => {
 
   try {
     if (rest[0] === "all" && rest[1] === "pdf") {
-      if (!checkAdminAuth(req)) return json({ error: "Unauthorized" }, 401);
+      if (!(await checkAdminAuth(req))) return json({ error: "Unauthorized" }, 401);
 
       const { data: rooms, error } = await supabase
         .from("rooms")
@@ -109,6 +103,9 @@ Deno.serve(async (req) => {
         .order("room_number", { ascending: true });
 
       if (error) return json({ error: error.message }, 500);
+      if (!rooms || rooms.length === 0) {
+        return json({ error: "Keine Zimmer vorhanden" }, 400);
+      }
 
       const pdfBytes = await buildQrPdf(rooms);
       return new Response(pdfBytes, {

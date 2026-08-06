@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  if (!checkAdminAuth(req)) {
+  if (!(await checkAdminAuth(req))) {
     return json({ error: "Unauthorized" }, 401);
   }
 
@@ -52,6 +52,7 @@ Deno.serve(async (req) => {
 
         let status: string;
         if (room.status === "vacant") status = "danger";
+        else if (room.status === "blocked") status = "blocked";
         else if (confirmedThisMonth) status = "ok";
         else status = "warn";
 
@@ -61,6 +62,7 @@ Deno.serve(async (req) => {
           id: room.id,
           room_number: room.room_number,
           status,
+          raw_status: room.status,
           token: room.token,
           last_confirmation: latest ? latest.confirmed_at : null,
           days_since: referenceDate ? daysBetween(referenceDate, now) : null,
@@ -91,7 +93,7 @@ Deno.serve(async (req) => {
 
     if (req.method === "PUT" && id) {
       const { status } = await req.json();
-      if (!["active", "vacant"].includes(status)) {
+      if (!["active", "vacant", "blocked"].includes(status)) {
         return json({ error: "Ungültiger Status" }, 400);
       }
 

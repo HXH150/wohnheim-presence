@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.qr]
 verify_jwt = false
+
+[functions.admins]
+verify_jwt = false
+
+[functions.reports]
+verify_jwt = false

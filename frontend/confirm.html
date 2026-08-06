@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wohnheim Präsenzbestätigung</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="confirm-wrap">
+  <div class="confirm-card">
+    <div class="confirm-header">
+      <div class="eyebrow">Wohnheim Musterstraße</div>
+      <h1 data-i18n="title">Monatliche Anwesenheitsbestätigung</h1>
+      <div class="room-badge"><span>🚪</span> <span id="room-label" data-i18n="roomPrefix">Zimmer</span> <span id="room-number">…</span></div>
+    </div>
+
+    <div class="confirm-body" id="confirm-body">
+      <div class="lang-row">
+        <button class="lang-btn active" data-lang="de">🇩🇪 DE</button>
+        <button class="lang-btn" data-lang="en">🇬🇧 EN</button>
+        <button class="lang-btn" data-lang="ar">🇸🇦 AR</button>
+        <button class="lang-btn" data-lang="tr">🇹🇷 TR</button>
+      </div>
+
+      <div class="question" id="question">Wohnen Sie noch in Zimmer 7?</div>
+      <div class="sub" data-i18n="sub">Bitte bestätigen Sie einmal im Monat, dass Sie noch hier wohnen. Das dauert nur eine Sekunde.</div>
+
+      <button class="btn-confirm" id="btn-confirm">
+        <span class="icon">✅</span> <span data-i18n="btnConfirm">Ja, ich wohne noch hier</span>
+      </button>
+      <button class="btn-moved" id="btn-moved" data-i18n="btnMoved">Ich bin ausgezogen →</button>
+    </div>
+
+    <div class="success-state" id="success-state">
+      <div class="success-icon">✅</div>
+      <h2 data-i18n="successTitle">Danke!</h2>
+      <p id="success-body">Ihre Anwesenheit für <strong>…</strong> wurde bestätigt.<br>Sie müssen nichts weiter tun.</p>
+    </div>
+
+    <div class="error-state" id="error-state">
+      <div class="success-icon">⚠️</div>
+      <h2 data-i18n="errorTitle">Ungültiger Link</h2>
+      <p data-i18n="errorBody">Dieser QR-Code konnte keinem Zimmer zugeordnet werden. Bitte wenden Sie sich an die Verwaltung.</p>
+    </div>
+
+    <div class="confirm-footer">
+      <div class="dot"></div>
+      <span data-i18n="footer">Ihre Daten werden sicher gespeichert. Kein Account erforderlich.</span>
+    </div>
+  </div>
+</div>
+
+<script src="js/confirm.js"></script>
+</body>
+</html>

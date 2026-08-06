@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wohnheim Verwaltung Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-card">
+    <h1>Verwaltung Dashboard</h1>
+    <p>Bitte geben Sie das Admin-Passwort ein, um fortzufahren.</p>
+    <div class="login-error" id="login-error">Falsches Passwort.</div>
+    <input type="password" id="login-password" placeholder="Passwort" autocomplete="current-password" />
+    <button id="login-btn">Anmelden</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="admin-wrap" id="dashboard" style="display:none">
+
+  <div class="admin-header">
+    <div>
+      <div style="font-size:12px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Verwaltung</div>
+      <h2>Zimmer-Übersicht</h2>
+    </div>
+    <div class="period" id="period-label">📅 …</div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="label">Gesamt Zimmer</div>
+      <div class="value blue" id="kpi-total">0</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Bestätigt</div>
+      <div class="value green" id="kpi-ok">0</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Nicht bestätigt</div>
+      <div class="value yellow" id="kpi-warn">0</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Leer / Ausgezogen</div>
+      <div class="value red" id="kpi-danger">0</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-row">
+    <div class="filter-buttons">
+      <button class="filter-btn active" data-filter="all">Alle</button>
+      <button class="filter-btn" data-filter="ok">✅ Bestätigt</button>
+      <button class="filter-btn" data-filter="warn">⚠️ Nicht bestätigt</button>
+      <button class="filter-btn" data-filter="danger">🔴 Ausgezogen</button>
+    </div>
+    <button class="btn-add-room" id="btn-add-room">+ Zimmer hinzufügen</button>
+  </div>
+
+  <!-- Table -->
+  <div class="room-table">
+    <div class="room-table-header">
+      <div>Zimmer</div>
+      <div>Status</div>
+      <div>Letzte Bestätigung</div>
+      <div>Tage ohne Bestätigung</div>
+      <div>Aktion</div>
+    </div>
+    <div id="room-rows"></div>
+  </div>
+
+  <!-- QR hint -->
+  <div class="qr-hint">
+    <div class="qr-placeholder">▦</div>
+    <div>
+      <h4>QR-Codes für alle Zimmer drucken</h4>
+      <p>Jedes Zimmer bekommt seinen eigenen QR-Code — einfach ausdrucken und an der Tür befestigen. Der Code funktioniert dauerhaft, auch wenn der Bewohner wechselt.</p>
+      <button class="dl-btn" id="btn-download-all-qr">⬇ Alle QR-Codes als PDF</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- QR PREVIEW MODAL -->
+<div class="modal-overlay" id="qr-modal">
+  <div class="modal-card">
+    <h3 id="qr-modal-title">QR-Code</h3>
+    <img id="qr-modal-img" alt="QR-Code" />
+    <div class="modal-actions">
+      <button id="qr-modal-close">Schließen</button>
+      <button class="primary" id="qr-modal-download">Herunterladen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ROOM MODAL -->
+<div class="modal-overlay" id="add-room-modal">
+  <div class="modal-card">
+    <h3>Zimmer hinzufügen</h3>
+    <input type="text" id="new-room-number" placeholder="Zimmernummer, z. B. 13" />
+    <div class="modal-actions">
+      <button id="add-room-cancel">Abbrechen</button>
+      <button class="primary" id="add-room-confirm">Hinzufügen</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/admin.js"></script>
+</body>
+</html>

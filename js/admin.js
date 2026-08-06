@@ -4,6 +4,7 @@
   // deployed Supabase project; defaults to the local `supabase functions serve` URL.
   const API_BASE = window.WOHNHEIM_FUNCTIONS_BASE || 'http://localhost:54321/functions/v1';
   const STORAGE_KEY = 'wohnheim_admin_password';
+  const STORAGE_KEY_USERNAME = 'wohnheim_admin_username';
 
   let rooms = [];
   let activeFilter = 'all';
@@ -11,6 +12,7 @@
   const el = {
     loginWrap: document.getElementById('login-wrap'),
     dashboard: document.getElementById('dashboard'),
+    loginUsername: document.getElementById('login-username'),
     loginPassword: document.getElementById('login-password'),
     loginBtn: document.getElementById('login-btn'),
     loginError: document.getElementById('login-error'),
@@ -40,19 +42,35 @@
     bulkRoomResult: document.getElementById('bulk-room-result'),
     bulkAddRoomCancel: document.getElementById('bulk-add-room-cancel'),
     bulkAddRoomConfirm: document.getElementById('bulk-add-room-confirm'),
+    reportMonth: document.getElementById('report-month'),
+    btnExportXlsx: document.getElementById('btn-export-xlsx'),
+    btnExportPdf: document.getElementById('btn-export-pdf'),
+    adminList: document.getElementById('admin-list'),
+    btnAddAdmin: document.getElementById('btn-add-admin'),
+    addAdminModal: document.getElementById('add-admin-modal'),
+    newAdminUsername: document.getElementById('new-admin-username'),
+    newAdminPassword: document.getElementById('new-admin-password'),
+    addAdminError: document.getElementById('add-admin-error'),
+    addAdminCancel: document.getElementById('add-admin-cancel'),
+    addAdminConfirm: document.getElementById('add-admin-confirm'),
   };
+
+  function adminUsername() {
+    return sessionStorage.getItem(STORAGE_KEY_USERNAME);
+  }
 
   function adminPassword() {
     return sessionStorage.getItem(STORAGE_KEY);
   }
 
   function authHeaders() {
-    return { 'x-admin-password': adminPassword() };
+    return { 'x-admin-username': adminUsername(), 'x-admin-password': adminPassword() };
   }
 
   function statusLabel(status) {
     if (status === 'ok') return { text: 'Bestätigt', cls: 'ok' };
     if (status === 'warn') return { text: 'Ausstehend', cls: 'warn' };
+    if (status === 'blocked') return { text: 'Gesperrt', cls: 'blocked' };
     return { text: 'Ausgezogen', cls: 'danger' };
   }
 
@@ -75,6 +93,7 @@
   }
 
   async function login() {
+    const username = el.loginUsername.value.trim();
     const password = el.loginPassword.value;
     el.loginError.style.display = 'none';
     el.loginBtn.disabled = true;
@@ -82,14 +101,16 @@
       const res = await fetch(`${API_BASE}/admin-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ username, password }),
       });
-      if (!res.ok) throw new Error('bad password');
+      if (!res.ok) throw new Error('bad credentials');
 
+      sessionStorage.setItem(STORAGE_KEY_USERNAME, username);
       sessionStorage.setItem(STORAGE_KEY, password);
       el.loginWrap.style.display = 'none';
       el.dashboard.style.display = 'block';
       loadRooms();
+      loadAdmins();
     } catch (err) {
       el.loginError.style.display = 'block';
     } finally {
@@ -98,6 +119,9 @@
   }
 
   el.loginBtn.addEventListener('click', login);
+  el.loginUsername.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') login();
+  });
   el.loginPassword.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') login();
   });
@@ -113,6 +137,7 @@
     const res = await fetch(`${API_BASE}/rooms`, { headers: authHeaders() });
     if (res.status === 401) {
       sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_KEY_USERNAME);
       el.dashboard.style.display = 'none';
       el.loginWrap.style.display = 'flex';
       return;
@@ -156,7 +181,14 @@
       return `
         <div class="room-row" data-status="${room.status}">
           <div class="room-num">Zi. ${room.room_number}</div>
-          <div><span class="status-pill ${label.cls}">${label.text}</span></div>
+          <div>
+            <span class="status-pill ${label.cls}">${label.text}</span>
+            <select class="status-select" data-id="${room.id}">
+              <option value="active" ${room.raw_status === 'active' ? 'selected' : ''}>Aktiv</option>
+              <option value="vacant" ${room.raw_status === 'vacant' ? 'selected' : ''}>Ausgezogen</option>
+              <option value="blocked" ${room.raw_status === 'blocked' ? 'selected' : ''}>Gesperrt</option>
+            </select>
+          </div>
           <div style="color:var(--ink-soft)">${formatDate(room.last_confirmation)}</div>
           <div style="color:${daysColor(room.status, room.days_since)};font-weight:700">${daysLabel(room.days_since)}</div>
           <div>${actionBtn}</div>
@@ -183,6 +215,31 @@
         const body = await res.json().catch(() => ({}));
         alert(`Abrechnung stoppen fehlgeschlagen: ${body.error || `HTTP ${res.status}`}`);
       }
+    }
+  });
+
+  el.roomRows.addEventListener('change', async (e) => {
+    const select = e.target.closest('select.status-select');
+    if (!select) return;
+
+    const newStatus = select.value;
+    select.disabled = true;
+    try {
+      const res = await fetch(`${API_BASE}/rooms/${select.dataset.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        loadRooms();
+      } else {
+        const body = await res.json().catch(() => ({}));
+        alert(`Status ändern fehlgeschlagen: ${body.error || `HTTP ${res.status}`}`);
+        select.disabled = false;
+      }
+    } catch (err) {
+      alert(`Status ändern fehlgeschlagen: ${err.message}`);
+      select.disabled = false;
     }
   });
 
@@ -357,21 +414,172 @@
   });
 
   el.btnDownloadAllQr.addEventListener('click', async () => {
-    const res = await fetch(`${API_BASE}/qr/all/pdf`, { headers: authHeaders() });
-    if (!res.ok) return;
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'qr-codes.pdf';
-    a.click();
-    URL.revokeObjectURL(url);
+    el.btnDownloadAllQr.disabled = true;
+    try {
+      const res = await fetch(`${API_BASE}/qr/all/pdf`, { headers: authHeaders() });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        alert(`QR-Export fehlgeschlagen: ${body.error || `HTTP ${res.status}`}`);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'qr-codes.pdf';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(`QR-Export fehlgeschlagen: ${err.message}`);
+    } finally {
+      el.btnDownloadAllQr.disabled = false;
+    }
   });
 
-  // Resume session if password already verified this tab
-  if (adminPassword()) {
+  // --- Admin account management ---
+
+  async function loadAdmins() {
+    const res = await fetch(`${API_BASE}/admins`, { headers: authHeaders() });
+    if (!res.ok) {
+      el.adminList.innerHTML = '<div class="empty-state">Admins konnten nicht geladen werden.</div>';
+      return;
+    }
+    const admins = await res.json();
+    renderAdminList(admins);
+  }
+
+  function renderAdminList(admins) {
+    if (admins.length === 0) {
+      el.adminList.innerHTML = '<div class="empty-state">Keine Admins gefunden.</div>';
+      return;
+    }
+    const canDelete = admins.length > 1;
+    el.adminList.innerHTML = admins.map((admin) => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);">
+        <span style="font-weight:600;font-size:13px;">${escapeHtml(admin.username)}</span>
+        <button
+          class="action-btn red"
+          data-action="delete-admin"
+          data-id="${admin.id}"
+          data-username="${escapeHtml(admin.username)}"
+          ${canDelete ? '' : 'disabled title="Der letzte Admin kann nicht gelöscht werden"'}
+        >Löschen</button>
+      </div>`).join('');
+  }
+
+  function escapeHtml(text) {
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  el.adminList.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-action="delete-admin"]');
+    if (!btn || btn.disabled) return;
+
+    if (!window.confirm(`Admin „${btn.dataset.username}“ wirklich löschen?`)) return;
+
+    const res = await fetch(`${API_BASE}/admins/${btn.dataset.id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    if (res.ok) {
+      loadAdmins();
+    } else {
+      const body = await res.json().catch(() => ({}));
+      alert(`Admin löschen fehlgeschlagen: ${body.error || `HTTP ${res.status}`}`);
+    }
+  });
+
+  el.btnAddAdmin.addEventListener('click', () => {
+    el.newAdminUsername.value = '';
+    el.newAdminPassword.value = '';
+    el.addAdminError.style.display = 'none';
+    el.addAdminModal.classList.add('active');
+    el.newAdminUsername.focus();
+  });
+
+  el.addAdminCancel.addEventListener('click', () => el.addAdminModal.classList.remove('active'));
+  el.addAdminModal.addEventListener('click', (e) => {
+    if (e.target === el.addAdminModal) el.addAdminModal.classList.remove('active');
+  });
+
+  el.addAdminConfirm.addEventListener('click', async () => {
+    const username = el.newAdminUsername.value.trim();
+    const password = el.newAdminPassword.value;
+    el.addAdminError.style.display = 'none';
+    if (!username || !password) return;
+
+    el.addAdminConfirm.disabled = true;
+    try {
+      const res = await fetch(`${API_BASE}/admins`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ username, password }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (res.ok) {
+        el.addAdminModal.classList.remove('active');
+        loadAdmins();
+      } else {
+        el.addAdminError.textContent = body.error || `HTTP ${res.status}`;
+        el.addAdminError.style.display = 'block';
+      }
+    } finally {
+      el.addAdminConfirm.disabled = false;
+    }
+  });
+
+  // --- Monthly report export ---
+
+  function currentMonthValue() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  el.reportMonth.value = currentMonthValue();
+
+  async function downloadReport(kind, button, filename) {
+    const month = el.reportMonth.value;
+    if (!month) {
+      alert('Bitte einen Monat auswählen.');
+      return;
+    }
+    button.disabled = true;
+    try {
+      const res = await fetch(`${API_BASE}/reports/${kind}?month=${encodeURIComponent(month)}`, {
+        headers: authHeaders(),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        alert(`Export fehlgeschlagen: ${body.error || `HTTP ${res.status}`}`);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${filename}-${month}.${kind}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(`Export fehlgeschlagen: ${err.message}`);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  el.btnExportXlsx.addEventListener('click', () => downloadReport('xlsx', el.btnExportXlsx, 'bericht'));
+  el.btnExportPdf.addEventListener('click', () => downloadReport('pdf', el.btnExportPdf, 'bericht'));
+
+  // Resume session if credentials already verified this tab
+  if (adminUsername() && adminPassword()) {
     el.loginWrap.style.display = 'none';
     el.dashboard.style.display = 'block';
     loadRooms();
+    loadAdmins();
   }
 })();

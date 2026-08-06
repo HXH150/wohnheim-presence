@@ -12,8 +12,9 @@
 <div class="login-wrap" id="login-wrap">
   <div class="login-card">
     <h1>Verwaltung Dashboard</h1>
-    <p>Bitte geben Sie das Admin-Passwort ein, um fortzufahren.</p>
-    <div class="login-error" id="login-error">Falsches Passwort.</div>
+    <p>Bitte melden Sie sich mit Ihrem Admin-Konto an.</p>
+    <div class="login-error" id="login-error">Falscher Benutzername oder Passwort.</div>
+    <input type="text" id="login-username" placeholder="Benutzername" autocomplete="username" />
     <input type="password" id="login-password" placeholder="Passwort" autocomplete="current-password" />
     <button id="login-btn">Anmelden</button>
   </div>
@@ -86,6 +87,31 @@
     </div>
   </div>
 
+  <!-- Monthly report export -->
+  <div class="qr-hint">
+    <div class="qr-placeholder">📊</div>
+    <div style="flex:1;">
+      <h4>Monatsbericht exportieren</h4>
+      <p>Zimmerübersicht für einen bestimmten Monat als Excel- oder PDF-Datei exportieren.</p>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+        <input type="month" id="report-month" style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:13px;font-family:inherit;" />
+        <button class="dl-btn" id="btn-export-xlsx">⬇ Export als Excel</button>
+        <button class="dl-btn" id="btn-export-pdf">⬇ Export als PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin account management -->
+  <div class="qr-hint" style="align-items:flex-start;">
+    <div class="qr-placeholder">👤</div>
+    <div style="flex:1;">
+      <h4>Admin-Konten verwalten</h4>
+      <p>Jeder Admin meldet sich mit einem eigenen Benutzernamen und Passwort an.</p>
+      <div id="admin-list" style="margin:14px 0;display:flex;flex-direction:column;gap:8px;"></div>
+      <button class="dl-btn" id="btn-add-admin">+ Neuen Admin hinzufügen</button>
+    </div>
+  </div>
+
 </div>
 
 <!-- QR PREVIEW MODAL -->
@@ -133,6 +159,20 @@
     <div class="modal-actions">
       <button id="bulk-add-room-cancel">Abbrechen</button>
       <button class="primary" id="bulk-add-room-confirm">Zimmer erstellen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ADMIN MODAL -->
+<div class="modal-overlay" id="add-admin-modal">
+  <div class="modal-card" style="text-align:left;">
+    <h3 style="text-align:center;">Neuen Admin hinzufügen</h3>
+    <input type="text" id="new-admin-username" placeholder="Benutzername" autocomplete="off" />
+    <input type="password" id="new-admin-password" placeholder="Passwort (mind. 8 Zeichen)" autocomplete="new-password" />
+    <div id="add-admin-error" style="display:none;color:var(--danger);font-size:13px;margin-bottom:12px;"></div>
+    <div class="modal-actions">
+      <button id="add-admin-cancel">Abbrechen</button>
+      <button class="primary" id="add-admin-confirm">Hinzufügen</button>
     </div>
   </div>
 </div>

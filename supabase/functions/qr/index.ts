@@ -45,6 +45,31 @@ async function buildQrSvg(token: string, roomNumber: string): Promise<string> {
 </svg>`;
 }
 
+// Draws a QR code as vector strokes (reusing qrcode's own SVG path data,
+// the same output already proven correct for the single-QR endpoint) rather
+// than embedding a raster image. Embedding 288+ raster PNGs into one PDFKit
+// document exhausted the Edge Function's memory limit (WORKER_RESOURCE_LIMIT)
+// well before finishing — PDFKit decodes each embedded image back into raw
+// pixels and keeps it referenced for the life of the document. Vector paths
+// have no such per-image pixel buffer, so memory stays flat regardless of
+// room count, and print quality is sharper besides.
+async function drawQrVector(doc: PDFKit.PDFDocument, token: string, x0: number, y0: number, size: number) {
+  const svg = await QRCode.toString(confirmUrl(token), { type: "svg", margin: 2 });
+  const viewBoxMatch = svg.match(/viewBox="0 0 (\d+) \d+"/);
+  const pathMatch = svg.match(/<path stroke="#000000" d="([^"]+)"/);
+  if (!viewBoxMatch || !pathMatch) throw new Error("QR-SVG konnte nicht gelesen werden");
+  const viewBoxSize = parseInt(viewBoxMatch[1], 10);
+  const scale = size / viewBoxSize;
+
+  doc.rect(x0, y0, size, size).fill("#ffffff");
+  doc.save();
+  doc.translate(x0, y0);
+  doc.scale(scale);
+  doc.lineWidth(1);
+  doc.path(pathMatch[1]).stroke("#000000");
+  doc.restore();
+}
+
 // One QR code per page, centered, with the room label printed below it —
 // each page is a ready-to-print door sign.
 async function buildQrPdf(rooms: RoomForQr[]): Promise<Uint8Array> {
@@ -64,14 +89,12 @@ async function buildQrPdf(rooms: RoomForQr[]): Promise<Uint8Array> {
     const room = rooms[i];
     if (i > 0) doc.addPage();
 
-    const qrDataUrl = await QRCode.toDataURL(confirmUrl(room.token), { width: qrSize, margin: 1 });
-    const qrImage = Buffer.from(qrDataUrl.split(",")[1], "base64");
-
     const x = (pageWidth - qrSize) / 2;
-    doc.image(qrImage, x, qrY, { width: qrSize });
+    await drawQrVector(doc, room.token, x, qrY, qrSize);
     doc
       .fontSize(28)
       .font("Helvetica-Bold")
+      .fillColor("#000000")
       .text(`Zimmer ${room.room_number}`, 0, qrY + qrSize + 40, { width: pageWidth, align: "center" });
   }
 

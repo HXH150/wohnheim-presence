@@ -8,6 +8,9 @@
 
   let rooms = [];
   let activeFilter = 'all';
+  let searchTerm = '';
+  let currentPage = 1;
+  const PAGE_SIZE = 30;
 
   const el = {
     loginWrap: document.getElementById('login-wrap'),
@@ -42,6 +45,11 @@
     bulkRoomResult: document.getElementById('bulk-room-result'),
     bulkAddRoomCancel: document.getElementById('bulk-add-room-cancel'),
     bulkAddRoomConfirm: document.getElementById('bulk-add-room-confirm'),
+    roomSearch: document.getElementById('room-search'),
+    paginationRow: document.getElementById('pagination-row'),
+    pagePrev: document.getElementById('page-prev'),
+    pageNext: document.getElementById('page-next'),
+    pageInfo: document.getElementById('page-info'),
     reportMonth: document.getElementById('report-month'),
     btnExportXlsx: document.getElementById('btn-export-xlsx'),
     btnExportPdf: document.getElementById('btn-export-pdf'),
@@ -161,14 +169,29 @@
   }
 
   function renderRows() {
-    const filtered = activeFilter === 'all' ? rooms : rooms.filter((r) => r.status === activeFilter);
+    let filtered = activeFilter === 'all' ? rooms : rooms.filter((r) => r.status === activeFilter);
+    if (searchTerm) {
+      const needle = searchTerm.toLowerCase();
+      filtered = filtered.filter((r) => r.room_number.toLowerCase().includes(needle));
+    }
 
     if (filtered.length === 0) {
       el.roomRows.innerHTML = '<div class="empty-state">Keine Zimmer gefunden.</div>';
+      el.paginationRow.style.display = 'none';
       return;
     }
 
-    el.roomRows.innerHTML = filtered.map((room) => {
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const pageRooms = filtered.slice(start, start + PAGE_SIZE);
+
+    el.paginationRow.style.display = totalPages > 1 ? 'flex' : 'none';
+    el.pageInfo.textContent = `Seite ${currentPage} von ${totalPages} (${filtered.length} Zimmer)`;
+    el.pagePrev.disabled = currentPage <= 1;
+    el.pageNext.disabled = currentPage >= totalPages;
+
+    el.roomRows.innerHTML = pageRooms.map((room) => {
       const label = statusLabel(room.status);
       const overdue = room.days_since !== null && room.days_since >= 30;
       // "Abrechnung stoppen" only makes sense for a still-active room that's
@@ -248,8 +271,27 @@
       el.filterBtns.forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       activeFilter = btn.dataset.filter;
+      currentPage = 1;
       renderRows();
     });
+  });
+
+  el.roomSearch.addEventListener('input', () => {
+    searchTerm = el.roomSearch.value.trim();
+    currentPage = 1;
+    renderRows();
+  });
+
+  el.pagePrev.addEventListener('click', () => {
+    currentPage--;
+    renderRows();
+    el.roomRows.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  el.pageNext.addEventListener('click', () => {
+    currentPage++;
+    renderRows();
+    el.roomRows.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   function openQrModal(token, roomNumber) {

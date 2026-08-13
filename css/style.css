@@ -285,6 +285,38 @@ body {
 }
 .btn-add-room:hover { background: #333; }
 
+.search-row { margin-bottom: 16px; }
+.search-row input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  font-size: 14px;
+  font-family: inherit;
+}
+.search-row input:focus { outline: none; border-color: var(--accent); }
+
+.pagination-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+.page-btn {
+  padding: 7px 16px;
+  border-radius: 100px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+.page-btn:disabled { opacity: .4; cursor: default; }
+.page-btn:not(:disabled):hover { background: #F9FAFB; }
+#page-info { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+
 /* Room table */
 .room-table {
   background: var(--surface);

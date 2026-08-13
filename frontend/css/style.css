@@ -219,6 +219,31 @@ body {
   font-weight: 600;
 }
 
+/* Tabs */
+.tab-nav {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1.5px solid var(--border);
+  margin-bottom: 24px;
+}
+.tab-btn {
+  padding: 10px 2px;
+  margin-bottom: -1.5px;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.tab-btn:hover:not(.active) { color: var(--ink); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
 /* KPI row */
 .kpi-row {
   display: grid;

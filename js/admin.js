@@ -20,6 +20,9 @@
     loginBtn: document.getElementById('login-btn'),
     loginError: document.getElementById('login-error'),
     periodLabel: document.getElementById('period-label'),
+    sectionTitle: document.getElementById('section-title'),
+    tabBtns: document.querySelectorAll('.tab-btn'),
+    tabPanels: document.querySelectorAll('.tab-panel'),
     kpiTotal: document.getElementById('kpi-total'),
     kpiOk: document.getElementById('kpi-ok'),
     kpiWarn: document.getElementById('kpi-warn'),
@@ -132,6 +135,17 @@
   });
   el.loginPassword.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') login();
+  });
+
+  const TAB_TITLES = { rooms: 'Zimmer-Übersicht', settings: 'Einstellungen' };
+
+  el.tabBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      el.tabBtns.forEach((b) => b.classList.toggle('active', b === btn));
+      el.tabPanels.forEach((p) => p.classList.toggle('active', p.id === `tab-${tab}`));
+      el.sectionTitle.textContent = TAB_TITLES[tab] || '';
+    });
   });
 
   function setPeriodLabel() {

@@ -26,101 +26,117 @@
   <div class="admin-header">
     <div>
       <div style="font-size:12px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Verwaltung</div>
-      <h2>Zimmer-Übersicht</h2>
+      <h2 id="section-title">Zimmer-Übersicht</h2>
     </div>
     <div class="period" id="period-label">📅 …</div>
   </div>
 
-  <!-- KPIs -->
-  <div class="kpi-row">
-    <div class="kpi">
-      <div class="label">Gesamt Zimmer</div>
-      <div class="value blue" id="kpi-total">0</div>
-    </div>
-    <div class="kpi">
-      <div class="label">Bestätigt</div>
-      <div class="value green" id="kpi-ok">0</div>
-    </div>
-    <div class="kpi">
-      <div class="label">Nicht bestätigt</div>
-      <div class="value yellow" id="kpi-warn">0</div>
-    </div>
-    <div class="kpi">
-      <div class="label">Leer / Ausgezogen</div>
-      <div class="value red" id="kpi-danger">0</div>
-    </div>
+  <!-- Tabs -->
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="rooms">🏠 Zimmer</button>
+    <button class="tab-btn" data-tab="settings">⚙️ Einstellungen</button>
   </div>
 
-  <!-- Filters -->
-  <div class="filter-row">
-    <div class="filter-buttons">
-      <button class="filter-btn active" data-filter="all">Alle</button>
-      <button class="filter-btn" data-filter="ok">✅ Bestätigt</button>
-      <button class="filter-btn" data-filter="warn">⚠️ Nicht bestätigt</button>
-      <button class="filter-btn" data-filter="danger">🔴 Ausgezogen</button>
-    </div>
-    <div class="search-box">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="room-search" placeholder="Zimmer suchen …" />
-    </div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn-add-room" id="btn-add-room">+ Zimmer hinzufügen</button>
-      <button class="btn-add-room" id="btn-bulk-add-room" style="background:var(--accent)">+ Mehrere Zimmer hinzufügen</button>
-    </div>
-  </div>
+  <!-- TAB: Zimmer -->
+  <div class="tab-panel active" id="tab-rooms">
 
-  <!-- Table -->
-  <div class="room-table">
-    <div class="room-table-header">
-      <div>Zimmer</div>
-      <div>Status</div>
-      <div>Letzte Bestätigung</div>
-      <div>Tage ohne Bestätigung</div>
-      <div>Aktion</div>
-    </div>
-    <div id="room-rows"></div>
-    <div class="room-table-footer" id="pagination-row">
-      <span id="page-info"></span>
-      <div class="pager-btns">
-        <button id="page-prev" class="page-btn" aria-label="Vorherige Seite">‹</button>
-        <button id="page-next" class="page-btn" aria-label="Nächste Seite">›</button>
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="label">Gesamt Zimmer</div>
+        <div class="value blue" id="kpi-total">0</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Bestätigt</div>
+        <div class="value green" id="kpi-ok">0</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Nicht bestätigt</div>
+        <div class="value yellow" id="kpi-warn">0</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Leer / Ausgezogen</div>
+        <div class="value red" id="kpi-danger">0</div>
       </div>
     </div>
-  </div>
 
-  <!-- QR hint -->
-  <div class="qr-hint">
-    <div class="qr-placeholder">▦</div>
-    <div>
-      <h4>QR-Codes für alle Zimmer drucken</h4>
-      <p>Jedes Zimmer bekommt seinen eigenen QR-Code — einfach ausdrucken und an der Tür befestigen. Der Code funktioniert dauerhaft, auch wenn der Bewohner wechselt.</p>
-      <button class="dl-btn" id="btn-download-all-qr">⬇ Alle QR-Codes als PDF</button>
-    </div>
-  </div>
-
-  <!-- Monthly report export -->
-  <div class="qr-hint">
-    <div class="qr-placeholder">📊</div>
-    <div style="flex:1;">
-      <h4>Monatsbericht exportieren</h4>
-      <p>Zimmerübersicht für einen bestimmten Monat als Excel- oder PDF-Datei exportieren.</p>
-      <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap;">
-        <input type="month" id="report-month" style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:13px;font-family:inherit;" />
-        <button class="dl-btn" id="btn-export-xlsx">⬇ Export als Excel</button>
-        <button class="dl-btn" id="btn-export-pdf">⬇ Export als PDF</button>
+    <!-- Filters -->
+    <div class="filter-row">
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">Alle</button>
+        <button class="filter-btn" data-filter="ok">✅ Bestätigt</button>
+        <button class="filter-btn" data-filter="warn">⚠️ Nicht bestätigt</button>
+        <button class="filter-btn" data-filter="danger">🔴 Ausgezogen</button>
+      </div>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="room-search" placeholder="Zimmer suchen …" />
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-add-room" id="btn-add-room">+ Zimmer hinzufügen</button>
+        <button class="btn-add-room" id="btn-bulk-add-room" style="background:var(--accent)">+ Mehrere Zimmer hinzufügen</button>
       </div>
     </div>
+
+    <!-- Table -->
+    <div class="room-table">
+      <div class="room-table-header">
+        <div>Zimmer</div>
+        <div>Status</div>
+        <div>Letzte Bestätigung</div>
+        <div>Tage ohne Bestätigung</div>
+        <div>Aktion</div>
+      </div>
+      <div id="room-rows"></div>
+      <div class="room-table-footer" id="pagination-row">
+        <span id="page-info"></span>
+        <div class="pager-btns">
+          <button id="page-prev" class="page-btn" aria-label="Vorherige Seite">‹</button>
+          <button id="page-next" class="page-btn" aria-label="Nächste Seite">›</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Admin account management -->
-  <div class="qr-hint" style="align-items:flex-start;">
-    <div class="qr-placeholder">👤</div>
-    <div style="flex:1;">
-      <h4>Admin-Konten verwalten</h4>
-      <p>Jeder Admin meldet sich mit einem eigenen Benutzernamen und Passwort an.</p>
-      <div id="admin-list" style="margin:14px 0;display:flex;flex-direction:column;gap:8px;"></div>
-      <button class="dl-btn" id="btn-add-admin">+ Neuen Admin hinzufügen</button>
+  <!-- TAB: Einstellungen -->
+  <div class="tab-panel" id="tab-settings">
+
+    <!-- QR hint -->
+    <div class="qr-hint">
+      <div class="qr-placeholder">▦</div>
+      <div>
+        <h4>QR-Codes für alle Zimmer drucken</h4>
+        <p>Jedes Zimmer bekommt seinen eigenen QR-Code — einfach ausdrucken und an der Tür befestigen. Der Code funktioniert dauerhaft, auch wenn der Bewohner wechselt.</p>
+        <button class="dl-btn" id="btn-download-all-qr">⬇ Alle QR-Codes als PDF</button>
+      </div>
     </div>
+
+    <!-- Monthly report export -->
+    <div class="qr-hint">
+      <div class="qr-placeholder">📊</div>
+      <div style="flex:1;">
+        <h4>Monatsbericht exportieren</h4>
+        <p>Zimmerübersicht für einen bestimmten Monat als Excel- oder PDF-Datei exportieren.</p>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+          <input type="month" id="report-month" style="padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:13px;font-family:inherit;" />
+          <button class="dl-btn" id="btn-export-xlsx">⬇ Export als Excel</button>
+          <button class="dl-btn" id="btn-export-pdf">⬇ Export als PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin account management -->
+    <div class="qr-hint" style="align-items:flex-start;">
+      <div class="qr-placeholder">👤</div>
+      <div style="flex:1;">
+        <h4>Admin-Konten verwalten</h4>
+        <p>Jeder Admin meldet sich mit einem eigenen Benutzernamen und Passwort an.</p>
+        <div id="admin-list" style="margin:14px 0;display:flex;flex-direction:column;gap:8px;"></div>
+        <button class="dl-btn" id="btn-add-admin">+ Neuen Admin hinzufügen</button>
+      </div>
+    </div>
+
   </div>
 
 </div>

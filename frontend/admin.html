@@ -59,14 +59,14 @@
       <button class="filter-btn" data-filter="warn">⚠️ Nicht bestätigt</button>
       <button class="filter-btn" data-filter="danger">🔴 Ausgezogen</button>
     </div>
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="room-search" placeholder="Zimmer suchen …" />
+    </div>
     <div style="display:flex;gap:8px;">
       <button class="btn-add-room" id="btn-add-room">+ Zimmer hinzufügen</button>
       <button class="btn-add-room" id="btn-bulk-add-room" style="background:var(--accent)">+ Mehrere Zimmer hinzufügen</button>
     </div>
-  </div>
-
-  <div class="search-row">
-    <input type="text" id="room-search" placeholder="Zimmer suchen, z. B. C44-3 oder WG 2 …" />
   </div>
 
   <!-- Table -->
@@ -79,12 +79,13 @@
       <div>Aktion</div>
     </div>
     <div id="room-rows"></div>
-  </div>
-
-  <div class="pagination-row" id="pagination-row">
-    <button id="page-prev" class="page-btn">‹ Zurück</button>
-    <span id="page-info"></span>
-    <button id="page-next" class="page-btn">Weiter ›</button>
+    <div class="room-table-footer" id="pagination-row">
+      <span id="page-info"></span>
+      <div class="pager-btns">
+        <button id="page-prev" class="page-btn" aria-label="Vorherige Seite">‹</button>
+        <button id="page-next" class="page-btn" aria-label="Nächste Seite">›</button>
+      </div>
+    </div>
   </div>
 
   <!-- QR hint -->

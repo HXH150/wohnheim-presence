@@ -285,37 +285,63 @@ body {
 }
 .btn-add-room:hover { background: #333; }
 
-.search-row { margin-bottom: 16px; }
-.search-row input {
+.search-box {
+  position: relative;
+  flex: 1 1 180px;
+  max-width: 260px;
+}
+.search-box input {
   width: 100%;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  border: 1.5px solid var(--border);
-  font-size: 14px;
-  font-family: inherit;
-}
-.search-row input:focus { outline: none; border-color: var(--accent); }
-
-.pagination-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 16px;
-}
-.page-btn {
-  padding: 7px 16px;
+  padding: 7px 14px 7px 32px;
   border-radius: 100px;
   border: 1.5px solid var(--border);
   background: var(--surface);
   font-size: 13px;
   font-weight: 600;
-  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink);
+}
+.search-box input::placeholder { color: var(--ink-soft); font-weight: 500; }
+.search-box input:focus { outline: none; border-color: var(--accent); }
+.search-box .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.room-table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #F9FAFB;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
   color: var(--ink-soft);
 }
-.page-btn:disabled { opacity: .4; cursor: default; }
-.page-btn:not(:disabled):hover { background: #F9FAFB; }
-#page-info { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+.pager-btns { display: flex; gap: 8px; }
+.pager-btns .page-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--ink);
+  line-height: 1;
+}
+.pager-btns .page-btn:disabled { opacity: .35; cursor: default; }
+.pager-btns .page-btn:not(:disabled):hover { background: var(--bg); }
 
 /* Room table */
 .room-table {
@@ -531,6 +557,7 @@ body {
 .modal-actions button:not(.primary):hover { background: var(--bg); }
 
 @media (max-width: 600px) {
+  .search-box { max-width: none; flex-basis: 100%; }
   .room-table-header,
   .room-row { grid-template-columns: 80px 1fr 110px; gap: 14px; }
   .room-table-header > *:nth-child(4),

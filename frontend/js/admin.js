@@ -187,7 +187,8 @@
     const pageRooms = filtered.slice(start, start + PAGE_SIZE);
 
     el.paginationRow.style.display = totalPages > 1 ? 'flex' : 'none';
-    el.pageInfo.textContent = `Seite ${currentPage} von ${totalPages} (${filtered.length} Zimmer)`;
+    const rangeEnd = Math.min(start + PAGE_SIZE, filtered.length);
+    el.pageInfo.textContent = `Zimmer ${start + 1}–${rangeEnd} von ${filtered.length}`;
     el.pagePrev.disabled = currentPage <= 1;
     el.pageNext.disabled = currentPage >= totalPages;
 

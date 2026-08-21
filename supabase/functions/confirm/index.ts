@@ -50,7 +50,10 @@ Deno.serve(async (req) => {
       }
 
       if (action === "moved_out") {
-        const { error } = await supabase.from("rooms").update({ status: "vacant" }).eq(
+        const { error } = await supabase.from("rooms").update({
+          status: "vacant",
+          status_changed_at: new Date().toISOString(),
+        }).eq(
           "id",
           room.id,
         );

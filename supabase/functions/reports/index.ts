@@ -51,7 +51,7 @@ async function buildReportRows(month: string): Promise<ReportRow[]> {
 
   const { data: rooms, error: roomsError } = await supabase
     .from("rooms")
-    .select("id, room_number, status")
+    .select("id, room_number, status, status_changed_at, created_at")
     .order("room_number", { ascending: true });
   if (roomsError) throw new Error(roomsError.message);
 
@@ -78,11 +78,15 @@ async function buildReportRows(month: string): Promise<ReportRow[]> {
     else if (confirmedThisMonthByRoom.has(room.id)) status = "Bestätigt";
     else status = "Ausstehend";
 
+    const lastConfirmed = room.status === "vacant"
+      ? (room.status_changed_at || room.created_at)
+      : (latest ? latest.confirmed_at : null);
+
     return {
       room_number: room.room_number,
       status,
-      last_confirmed: latest ? latest.confirmed_at : null,
-      days_since: latest ? daysBetween(latest.confirmed_at, referenceDate) : null,
+      last_confirmed: lastConfirmed,
+      days_since: lastConfirmed ? daysBetween(lastConfirmed, referenceDate) : null,
       month,
     };
   });
@@ -91,11 +95,11 @@ async function buildReportRows(month: string): Promise<ReportRow[]> {
 function buildXlsx(rows: ReportRow[], month: string): Uint8Array {
   const label = monthLabel(month);
   const sheetData = rows.map((r) => ({
-    "Room Number": r.room_number,
+    "Zimmernummer": r.room_number,
     "Status": r.status,
-    "Last Confirmed": formatDateDe(r.last_confirmed),
-    "Days Since Confirmation": r.days_since ?? "–",
-    "Month": label,
+    "Letzte Bestätigung": formatDateDe(r.last_confirmed),
+    "Tage seit Bestätigung": r.days_since ?? "–",
+    "Monat": label,
   }));
   const ws = XLSX.utils.json_to_sheet(sheetData);
   ws["!cols"] = [{ wch: 16 }, { wch: 14 }, { wch: 16 }, { wch: 22 }, { wch: 16 }];

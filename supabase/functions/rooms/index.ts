@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     if (req.method === "GET" && !id) {
       const { data: rooms, error: roomsError } = await supabase
         .from("rooms")
-        .select("id, room_number, status, token, created_at")
+        .select("id, room_number, status, token, created_at, status_changed_at")
         .order("room_number", { ascending: true });
 
       if (roomsError) return json({ error: roomsError.message }, 500);
@@ -56,7 +56,9 @@ Deno.serve(async (req) => {
         else if (confirmedThisMonth) status = "ok";
         else status = "warn";
 
-        const referenceDate = latest ? latest.confirmed_at : room.created_at;
+        const referenceDate = room.status === "vacant"
+          ? (room.status_changed_at || room.created_at)
+          : (latest ? latest.confirmed_at : room.created_at);
 
         return {
           id: room.id,
@@ -65,6 +67,7 @@ Deno.serve(async (req) => {
           raw_status: room.status,
           token: room.token,
           last_confirmation: latest ? latest.confirmed_at : null,
+          status_changed_at: room.status_changed_at,
           days_since: referenceDate ? daysBetween(referenceDate, now) : null,
         };
       });
@@ -99,7 +102,7 @@ Deno.serve(async (req) => {
 
       const { data, error } = await supabase
         .from("rooms")
-        .update({ status })
+        .update({ status, status_changed_at: new Date().toISOString() })
         .eq("id", id)
         .select()
         .single();

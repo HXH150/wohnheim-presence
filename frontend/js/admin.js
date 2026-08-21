@@ -216,6 +216,10 @@
         ? `<button class="action-btn red" data-action="stop-billing" data-id="${room.id}">Abrechnung stoppen</button>`
         : `<button class="action-btn" data-action="qr" data-token="${room.token}" data-room="${room.room_number}">QR</button>`;
 
+      const lastConfirmedCell = room.raw_status === 'vacant'
+        ? `Ausgezogen am ${formatDate(room.status_changed_at)}`
+        : formatDate(room.last_confirmation);
+
       return `
         <div class="room-row" data-status="${room.status}">
           <div class="room-num">Zi. ${room.room_number}</div>
@@ -227,7 +231,7 @@
               <option value="blocked" ${room.raw_status === 'blocked' ? 'selected' : ''}>Gesperrt</option>
             </select>
           </div>
-          <div style="color:var(--ink-soft)">${formatDate(room.last_confirmation)}</div>
+          <div style="color:var(--ink-soft)">${lastConfirmedCell}</div>
           <div style="color:${daysColor(room.status, room.days_since)};font-weight:700">${daysLabel(room.days_since)}</div>
           <div>${actionBtn}</div>
         </div>`;
